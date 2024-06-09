@@ -1,61 +1,86 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const Trace = require("../models/trace");
+const Trace = require('../models/trace');
 
-// Créer une nouvelle trace (Create)
-router.post("/", async (req, res) => {
+// Get all traces
+router.get('/', async (req, res) => {
   try {
-    const newTrace = new Trace(req.body);
-    const savedTrace = await newTrace.save();
-    res.status(201).json(savedTrace);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
-  }
-});
-
-// Lire toutes les traces (Read all)
-router.get("/", async (req, res) => {
-  try {
-    const traces = await Trace.find().populate('stations.station');
+    const traces = await Trace.find().populate('voyage stations.station');
     res.status(200).json(traces);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
-// Lire une trace spécifique par ID (Read one)
-router.get("/:id", async (req, res) => {
+// Get a single trace by ID
+router.get('/:id', async (req, res) => {
   try {
-    const trace = await Trace.findById(req.params.id).populate('stations.station');
-    if (!trace) return res.status(404).json({ message: "Trace not found" });
+    const trace = await Trace.findById(req.params.id).populate('voyage stations.station');
+    if (trace == null) {
+      return res.status(404).json({ message: 'Trace not found' });
+    }
     res.status(200).json(trace);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
-// Mettre à jour une trace (Update)
-router.put("/:id", async (req, res) => {
+// Create a new trace
+router.post('/', async (req, res) => {
+  console.log(req.body)
+  const trace = new Trace({
+    voyage: req.body.voyage,
+    stations: req.body.stations,
+    tempsTotal: req.body.tempsTotal,
+    distanceTotal: req.body.distanceTotal
+  });
+
   try {
-    const updatedTrace = await Trace.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-    if (!updatedTrace) return res.status(404).json({ message: "Trace not found" });
+    const newTrace = await trace.save();
+    res.status(201).json(newTrace);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Update an existing trace
+router.put('/:id', async (req, res) => {
+  try {
+    const trace = await Trace.findById(req.params.id);
+    if (trace == null) {
+      return res.status(404).json({ message: 'Trace not found' });
+    }
+
+    if (req.body.voyage != null) {
+      trace.voyage = req.body.voyage;
+    }
+    if (req.body.stations != null) {
+      trace.stations = req.body.stations;
+    }
+    if (req.body.tempsTotal != null) {
+      trace.tempsTotal = req.body.tempsTotal;
+    }
+    if (req.body.distanceTotal != null) {
+      trace.distanceTotal = req.body.distanceTotal;
+    }
+
+    const updatedTrace = await trace.save();
     res.status(200).json(updatedTrace);
-  } catch (error) {
-    res.status(400).json({ message: error.message });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 });
 
-// Supprimer une trace (Delete)
-router.delete("/:id", async (req, res) => {
+// Delete a trace
+router.delete('/:id', async (req, res) => {
   try {
-    const deletedTrace = await Trace.findByIdAndDelete(req.params.id);
-    if (!deletedTrace) return res.status(404).json({ message: "Trace not found" });
-    res.status(200).json({ message: "Trace deleted" });
+    const trace = await Trace.findByIdAndDelete(req.params.id);
+    if (!trace) {
+      return res.status(404).send();
+    }
+    res.status(200).send(trace);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).send(error);
   }
 });
 

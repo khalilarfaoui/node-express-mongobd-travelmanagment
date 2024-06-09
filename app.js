@@ -6,6 +6,7 @@ const userRoutes = require('./routes/user')
 const companyRoutes = require('./routes/company')
 const stationRoutes = require('./routes/station')
 const voyageRoutes = require('./routes/voyage')
+const traceRoutes = require('./routes/trace')
 const cors = require('cors');
 
 dotenv.config()
@@ -21,6 +22,7 @@ app.use('/user',userRoutes)
 app.use('/company',companyRoutes)
 app.use('/station',stationRoutes)
 app.use('/voyage',voyageRoutes)
+app.use('/trace',traceRoutes)
 
 
 //test app first route
